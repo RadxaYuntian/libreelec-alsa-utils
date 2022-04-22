@@ -1,0 +1,30 @@
+From d9efb321734fe41e1a52eb892d5641b3540d305c Mon Sep 17 00:00:00 2001
+From: Yuntian Zhang <yt@radxa.com>
+Date: Fri, 22 Apr 2022 18:00:47 +0800
+Subject: [PATCH] alsa-utils: Magic to get script working
+
+`progress` is not installed by default, and replacing it with echo
+doesn't work correctly. For some reason this was needed to get
+it working.
+
+Signed-off-by: Yuntian Zhang <yt@radxa.com>
+---
+ packages/audio/alsa-utils/scripts/soundconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/packages/audio/alsa-utils/scripts/soundconfig b/packages/audio/alsa-utils/scripts/soundconfig
+index 09d3ba4036..5e048d6e4f 100755
+--- a/packages/audio/alsa-utils/scripts/soundconfig
++++ b/packages/audio/alsa-utils/scripts/soundconfig
+@@ -15,7 +15,7 @@ mixer() {
+ (
+ . /etc/profile
+ 
+-progress "Setting up sound card"
++echo "Setting up sound card" | cat
+ 
+ if [ -f $HOME/.config/sound.conf ]; then
+ 
+-- 
+2.35.1
+
