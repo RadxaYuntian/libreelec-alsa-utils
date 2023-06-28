@@ -11,6 +11,8 @@ Package: libreelec-alsa-utils
 Architecture: all
 Section: misc
 Priority: optional
-Depends: ${misc:Depends},
+Depends: dthelper,
+         progress,
+         ${misc:Depends},
 Description: ALSA utils from LibreELEC
  ALSA utils from LibreELEC, providing ALSA routing in user space.
