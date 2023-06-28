@@ -1,36 +1,60 @@
-MAKEFLAGS += --silent
+PROJECT ?= libreelec-alsa-utils
+PREFIX ?= /usr
+BINDIR ?= $(PREFIX)/bin
+LIBDIR ?= $(PREFIX)/lib
+MANDIR ?= $(PREFIX)/share/man
 
-NAME = $(shell cat NAME)
-VERSION = $(shell cat VERSION)
-URL = https://github.com/radxa-pkg/libreelec-alsa-utils
-DESCRIPTION = ALSA helper from LibreELEC
+.PHONY: all
+all: build
 
-all:
-	cd ./src && \
-	git config --get user.name || git config user.name "Radxa" && \
-	git config --get user.email || git config user.email "dev@radxa.com" && \
-	git am ../*.patch && \
-	cd ..
+#
+# Test
+#
+.PHONY: test
+test:
 
-	rm -rf ./.deb-pkg/
-	mkdir -p ./.deb-pkg/usr/lib/udev/rules.d/
-	cp ./src/packages/audio/alsa-utils/scripts/soundconfig ./.deb-pkg/usr/lib/udev
-	cp ./src/packages/audio/alsa-utils/udev.d/90-alsa-restore.rules ./.deb-pkg/usr/lib/udev/rules.d
-	
-	fpm -s dir -t deb -n $(NAME) -v $(VERSION) \
-		-a all \
-		--depends dthelper \
-		--deb-priority optional --category admin \
-		--deb-field "Multi-Arch: foreign" \
-		--deb-field "Replaces: $(NAME)" \
-		--deb-field "Conflicts: $(NAME)" \
-		--deb-field "Provides: $(NAME)" \
-		--url $(URL) \
-		--description "$(DESCRIPTION)" \
-		--license "GPL-2+" \
-		-m "Radxa <dev@radxa.com>" \
-		--vendor "Radxa" \
-		--force \
-		./.deb-pkg/=/
+#
+# Build
+#
+.PHONY: build
+build: build-doc
 
-	rm -rf ./.deb-pkg/
+SRC-DOC		:=	.
+DOCS		:=	$(SRC-DOC)/SOURCE
+.PHONY: build-doc
+build-doc: $(DOCS)
+
+$(SRC-DOC):
+	mkdir -p $(SRC-DOC)
+
+.PHONY: $(SRC-DOC)/SOURCE
+$(SRC-DOC)/SOURCE: $(SRC-DOC)
+	echo -e "git clone $(shell git remote get-url origin)\ngit checkout $(shell git rev-parse HEAD)" > "$@"
+
+#
+# Clean
+#
+.PHONY: distclean
+distclean: clean
+
+.PHONY: clean
+clean: clean-doc clean-deb
+
+.PHONY: clean-doc
+clean-doc:
+	rm -rf $(DOCS)
+
+.PHONY: clean-deb
+clean-deb:
+	rm -rf debian/.debhelper debian/${PROJECT} debian/debhelper-build-stamp debian/files debian/*.debhelper.log debian/*.postrm.debhelper debian/*.substvars
+
+#
+# Release
+#
+.PHONY: dch
+dch: debian/changelog
+	gbp dch --debian-branch=main
+
+.PHONY: deb
+deb: debian
+	debuild --no-lintian --lintian-hook "lintian --fail-on error,warning --suppress-tags bad-distribution-in-changes-file -- %p_%v_*.changes" --no-sign -b

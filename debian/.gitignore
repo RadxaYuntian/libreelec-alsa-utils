@@ -1,0 +1,7 @@
+/.debhelper
+/debhelper-build-stamp
+/files
+/libreelec-alsa-utils
+/*.debhelper.log
+/*.postrm.debhelper
+/*.substvars

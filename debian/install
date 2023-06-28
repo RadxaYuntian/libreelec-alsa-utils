@@ -1,0 +1,2 @@
+src/packages/audio/alsa-utils/scripts/soundconfig usr/lib/udev/
+src/packages/audio/alsa-utils/udev.d/90-alsa-restore.rules usr/lib/udev/rules.d/
