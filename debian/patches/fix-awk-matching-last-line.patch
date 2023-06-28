@@ -1,0 +1,13 @@
+Index: libreelec-alsa-utils/src/packages/audio/alsa-utils/scripts/soundconfig
+===================================================================
+--- libreelec-alsa-utils.orig/src/packages/audio/alsa-utils/scripts/soundconfig
++++ libreelec-alsa-utils/src/packages/audio/alsa-utils/scripts/soundconfig
+@@ -132,7 +132,7 @@ else
+   case $(dtsoc) in
+     amlogic,g12*|amlogic,sm1)
+       # AXG HDMI // Logic assumes TDMOUT_A is not present in device-tree when TDMOUT_B is used
+-      TDMOUT=$(awk '/TDMOUT/ && $2=="OUT" {print substr($1,length($1),1)}' /sys/firmware/devicetree/base/sound/audio-routing | sort | head -n 1)
++      TDMOUT=$(tr '\0' '\n' < /sys/firmware/devicetree/base/sound/audio-routing | awk '/TDMOUT/ && $2=="OUT" {print substr($1,length($1),1)}' | sort | head -n 1)
+       if [ "${TDMOUT}" = "A" ]; then
+         mixer "$card" 'FRDDR_A SINK 1 SEL' 'OUT 0'
+         mixer "$card" 'FRDDR_A SRC 1 EN' on
