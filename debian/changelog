@@ -1,4 +1,4 @@
-libreelec-alsa-utils (11.0.1-1) UNRELEASED; urgency=medium
+libreelec-alsa-utils (11.0.1-1) stable; urgency=medium
 
   * Switched to Debian format
 
