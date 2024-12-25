@@ -1,0 +1,57 @@
+diff --git a/src/packages/audio/alsa-utils/scripts/soundconfig b/src/packages/audio/alsa-utils/scripts/soundconfig
+index 8ce81b35b7..671215d764 100755
+--- a/src/packages/audio/alsa-utils/scripts/soundconfig
++++ b/src/packages/audio/alsa-utils/scripts/soundconfig
+@@ -132,35 +132,40 @@ else
+   case $(dtsoc) in
+     amlogic,g12*|amlogic,sm1)
+       # AXG HDMI // Logic assumes TDMOUT_A is not present in device-tree when TDMOUT_B is used
+-      TDMOUT=$(tr '\0' '\n' < /sys/firmware/devicetree/base/sound/audio-routing | awk '/TDMOUT/ && $2=="OUT" {print substr($1,length($1),1)}' | sort | head -n 1)
+-      if [ "${TDMOUT}" = "A" ]; then
++      TDMOUT=$(tr '\0' '\n' < /sys/firmware/devicetree/base/sound/audio-routing | awk '/TDMOUT/ && $2=="OUT" {print substr($1,length($1),1)}' | sort)
++      if [[ "${TDMOUT}" = *"A"* ]]; then
+         mixer "$card" 'FRDDR_A SINK 1 SEL' 'OUT 0'
+         mixer "$card" 'FRDDR_A SRC 1 EN' on
+         mixer "$card" 'TDMOUT_A SRC SEL' 'IN 0'
+         mixer "$card" 'TOHDMITX' on
+         mixer "$card" 'TOHDMITX I2S SRC' 'I2S A'
+-      elif [ "${TDMOUT}" = "B" ]; then
+-        mixer "$card" 'FRDDR_A SINK 1 SEL' 'OUT 1'
+-        mixer "$card" 'FRDDR_A SRC 1 EN' on
+-        mixer "$card" 'TDMOUT_B SRC SEL' 'IN 0'
++      fi
++      if [[ "${TDMOUT}" = *"B"* ]]; then
++        mixer "$card" 'FRDDR_B SINK 1 SEL' 'OUT 1'
++        mixer "$card" 'FRDDR_B SRC 1 EN' on
++        mixer "$card" 'TDMOUT_B SRC SEL' 'IN 1'
+         mixer "$card" 'TOHDMITX' on
+         mixer "$card" 'TOHDMITX I2S SRC' 'I2S B'
+       fi
+       # AXG S/PDIF
+-      SPDIFOUT=$(awk '/SPDIF/' /sys/firmware/devicetree/base/sound/audio-routing | sort | head -n 1)
++      SPDIFOUT=$(tr '\0' '\n' < /sys/firmware/devicetree/base/sound/audio-routing | awk '/SPDIF/' | sort | head -n 1)
+       if [ -n "${SPDIFOUT}" ]; then
+-        mixer "$card" 'FRDDR_B SINK 1 SEL' 'OUT 3'
+-        mixer "$card" 'FRDDR_B SRC 1 EN' on
+-        mixer "$card" 'SPDIFOUT SRC SEL' 'IN 1'
++        mixer "$card" 'FRDDR_C SINK 1 SEL' 'OUT 3'
++        mixer "$card" 'FRDDR_C SRC 1 EN' on
++        mixer "$card" 'SPDIFOUT SRC SEL' 'IN 2'
+         mixer "$card" 'SPDIFOUT Playback' on
+       fi
+       # AXG Headphone Jack
+-      ACODEC=$(awk '/ACODEC/' /sys/firmware/devicetree/base/sound/audio-routing | sort | head -n 1)
++      ACODEC=$(tr '\0' '\n' < /sys/firmware/devicetree/base/sound/audio-routing | awk '/ACODEC/' | sort | head -n 1)
+       if [ -n "${ACODEC}" ]; then
+         mixer "$card" 'TOACODEC OUT EN' on
+-        mixer "$card" 'TOACODEC SRC' 'I2S ${TDMOUT}'
++        if [[ "${TDMOUT}" = *"A"* ]]; then
++          mixer "$card" 'TOACODEC SRC' 'I2S A'
++        elif [[ "${TDMOUT}" = *"B"* ]]; then
++          mixer "$card" 'TOACODEC SRC' 'I2S B'
++        fi
+         mixer "$card" 'ACODEC Playback Switch' on
+         mixer "$card" 'ACODEC Playback Channel Mode' Stereo
+       fi
+       ;;
+     amlogic,meson-gx*)
